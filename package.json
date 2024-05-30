@@ -54,7 +54,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/TomaszPilch/strapi-code-editor-custom-field.git"
+    "url": "https://github.com/kristobalus/strapi-code-editor-custom-field.git"
   },
   "engines": {
     "node": ">=14.19.1 <=18.x.x",
