@@ -2,7 +2,7 @@ import React, { Suspense, useState, useEffect } from 'react'
 import { useIntl } from 'react-intl'
 import { debounceTime, Subject } from 'rxjs'
 import styled from 'styled-components'
-import CodeEditorLib from '@monaco-editor/react'
+import CodeEditorLib, { Monaco } from '@monaco-editor/react'
 
 import { Field, FieldHint, FieldError, FieldLabel } from '@strapi/design-system/Field'
 import { Stack, Flex, Loader, Select, Option, IconButton, Icon } from '@strapi/design-system'
@@ -142,6 +142,24 @@ const CodeEditor = ({
   }
 
   const StyledDiv = fullScreen ? FullScreenDiv : NormalDiv
+
+  function handleEditorWillMount(monaco: Monaco) {
+    // here is the monaco instance
+    // do something before editor is mounted
+    // monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+    // extra libraries
+    const libSource = [
+      "declare class Facts {",
+      "    /**",
+      "     * Returns the next fact",
+      "     */",
+      "    static next():string",
+      "}",
+    ].join("\n");
+    const libUri = "ts:filename/facts.d.ts";
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(libSource, libUri);
+  }
+
   return (
     <Field name={name} id={name} error={error} hint={description && formatMessage(description)} required={required}>
       <StyledDiv>
@@ -176,6 +194,7 @@ const CodeEditor = ({
               language={language}
               loading={<Loader>Loading</Loader>}
               onChange={handleChange}
+              beforeMount={handleEditorWillMount}
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
               value={editorValue}
             />
