@@ -1,8 +1,8 @@
-import React, { Suspense, useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect, useRef } from 'react'
 import { useIntl } from 'react-intl'
 import { debounceTime, Subject } from 'rxjs'
 import styled from 'styled-components'
-import CodeEditorLib, { Monaco } from '@monaco-editor/react'
+import MonacoEditor, { Monaco, useMonaco } from '@monaco-editor/react'
 
 import { Field, FieldHint, FieldError, FieldLabel } from '@strapi/design-system/Field'
 import { Stack, Flex, Loader, Select, Option, IconButton, Icon } from '@strapi/design-system'
@@ -87,6 +87,15 @@ const CodeEditor = ({
   required,
   value,
 }: CodeEditorPropsT) => {
+
+  const [ options ] = useState({
+    formatOnPaste: true,
+    formatOnType: true,
+    wordWrap: "off"
+  } as any)
+
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef(null);
   const { formatMessage } = useIntl()
   const languageRegExp = new RegExp('__(.+)__;')
   const isJson = attribute.customField.endsWith('code-editor-json')
@@ -125,11 +134,23 @@ const CodeEditor = ({
     setPrevValue(value)
   }
 
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    // do conditional chaining
+    monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+    // or make sure that it exists by other ways
+    if (monaco) {
+      console.log('here is the monaco instance:', monaco);
+    }
+  }, [monaco]);
+
   useEffect(() => {
     const subscription = subject.pipe(debounceTime(1000)).subscribe(handleOnChange)
     if (defaultValueForEditor) {
       handleChange(defaultValueForEditor)
     }
+
     return () => {
       subscription.unsubscribe()
     }
@@ -160,6 +181,13 @@ const CodeEditor = ({
     monaco.languages.typescript.typescriptDefaults.addExtraLib(libSource, libUri);
   }
 
+  function handleEditorDidMount(editor: any, monaco: any) {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+    console.log('here is the editorRef instance:', editor);
+    console.log('here is the monacoRef instance:', monaco);
+  }
+
   return (
     <Field name={name} id={name} error={error} hint={description && formatMessage(description)} required={required}>
       <StyledDiv>
@@ -188,13 +216,15 @@ const CodeEditor = ({
             </Flex>
           </Flex>
           <Suspense fallback={<Loader>Loading</Loader>}>
-            <CodeEditorLib
+            <MonacoEditor
               defaultValue={defaultValue}
               height={fullScreen ? '80vh' : '30vh'}
               language={language}
+              options={options}
               loading={<Loader>Loading</Loader>}
               onChange={handleChange}
               beforeMount={handleEditorWillMount}
+              onMount={handleEditorDidMount}
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
               value={editorValue}
             />
