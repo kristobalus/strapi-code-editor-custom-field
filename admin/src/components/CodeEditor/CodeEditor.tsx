@@ -169,7 +169,7 @@ const CodeEditor = ({
               language={language}
               loading={<Loader>Loading</Loader>}
               onChange={handleChange}
-              theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              theme={!theme || theme === 'dark' ? 'vs-dark' : 'light'}
               value={editorValue}
             />
           </Suspense>
